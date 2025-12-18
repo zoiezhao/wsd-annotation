@@ -350,7 +350,6 @@
         <br>
         <button onclick="previousQuestion()" id="prev-btn" style="background-color: #757575;">← 上一题</button>
         <button onclick="submitAnswer()" id="next-btn">下一题 →</button>
-        <button onclick="manualSave()" id="save-btn" style="background-color: #FF9800;">💾 保存进度</button>
         
         <!-- 浮窗 -->
         <div id="selected-panel">
@@ -532,9 +531,9 @@
             isSaving = false;
         }
 
-        // 手动保存
+        // 手动确认保存
         async function manualSave() {
-            const saveBtn = document.getElementById('save-btn');
+            const saveBtn = document.getElementById('manual-save-btn');
             const originalText = saveBtn.innerHTML;
             
             // 禁用按钮，显示保存中
@@ -547,7 +546,7 @@
                 await processSaveQueue();
                 
                 // 显示成功
-                saveBtn.innerHTML = '✓ 保存成功';
+                saveBtn.innerHTML = '✓ 已保存';
                 saveBtn.style.backgroundColor = '#4CAF50';
                 
                 // 2秒后恢复
@@ -566,7 +565,7 @@
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalText;
                     saveBtn.style.backgroundColor = '#FF9800';
-                }, 2000);
+                }, 3000);
             }
         }
         
