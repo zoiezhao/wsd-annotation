@@ -585,7 +585,7 @@
             }
         }
 
-        
+
         
         // 为FN标签分配颜色
         function assignFNColors(definitions) {
@@ -711,10 +711,6 @@
             // 立即跳转到下一题
             currentQuestion++;
             
-            // 跳过已回答的题
-            while (currentQuestion < questions.length && currentQuestion in answers) {
-                currentQuestion++;
-            }
             
             if (currentQuestion < questions.length) {
                 displayQuestion();
