@@ -542,6 +542,22 @@
             saveBtn.style.backgroundColor = '#999';
             
             try {
+                // 先检查当前题是否有选择但未保存
+                const selected = document.querySelector('input[name="answer"]:checked');
+                if (selected) {
+                    const selectedAnswer = parseInt(selected.value);
+                    
+                    // 如果当前题的答案和已保存的不同，或者还没保存过
+                    if (answers[currentQuestion] !== selectedAnswer) {
+                        answers[currentQuestion] = selectedAnswer;
+                        saveQueue.push({
+                            questionIndex: currentQuestion,
+                            selectedAnswer: selectedAnswer
+                        });
+                        updateProgressInfo();
+                    }
+                }
+                
                 // 处理所有待保存的数据
                 await processSaveQueue();
                 
@@ -568,6 +584,8 @@
                 }, 3000);
             }
         }
+
+        
         
         // 为FN标签分配颜色
         function assignFNColors(definitions) {
