@@ -382,9 +382,9 @@
         let fnColorMap = {};
         let questions = [];
         let currentQuestion = 0;
-        let answers = {};  // 改为对象，key是question_index
+        let answers = {};
         let currentAnnotator = null;
-        let saveQueue = [];  // 保存队列
+        let saveQueue = [];
         let isSaving = false;
         
         // 登录
@@ -401,15 +401,13 @@
             document.getElementById('main-container').style.display = 'block';
             document.getElementById('user-name').textContent = '标注员: ' + annotatorId;
             
-            // 加载题目和进度
             loadQuestionsAndProgress();
         }
         
         // 退出登录
         function logout() {
             if (confirm('确定要退出登录吗？您的进度已自动保存。')) {
-                // 等待所有保存完成
-                processSaveQueue().then(() => {
+                processSaveQueue(false).then(() => {
                     currentAnnotator = null;
                     answers = {};
                     currentQuestion = 0;
@@ -424,22 +422,18 @@
         // 加载题目和进度
         async function loadQuestionsAndProgress() {
             try {
-                // 加载题目
                 const questionsResponse = await fetch('questions.json');
                 questions = await questionsResponse.json();
                 console.log('Loaded ' + questions.length + ' questions');
                 
-                // 加载该用户的进度
                 const progressResponse = await fetch(SCRIPT_URL + '?action=getProgress&annotator_id=' + currentAnnotator);
                 const progressData = await progressResponse.json();
                 
                 if (progressData.success) {
-                    // 构建answers对象
                     progressData.answered.forEach(item => {
                         answers[item.question_index] = item.selected_answer;
                     });
                     
-                    // 找到第一个未回答的题目
                     currentQuestion = 0;
                     for (let i = 0; i < questions.length; i++) {
                         if (!(i in answers)) {
@@ -448,7 +442,6 @@
                         }
                     }
                     
-                    // 如果全部完成
                     if (currentQuestion === 0 && Object.keys(answers).length === questions.length) {
                         currentQuestion = questions.length - 1;
                     }
@@ -476,14 +469,12 @@
         
         // 保存答案到Google Sheets（异步，不等待）
         function saveAnswer(questionIndex, selectedAnswer) {
-            // 添加到保存队列
             saveQueue.push({
                 questionIndex: questionIndex,
                 selectedAnswer: selectedAnswer
             });
             
-            // 触发保存处理
-            processSaveQueue();
+            processSaveQueue(false);
         }
         
         // 处理保存队列
@@ -514,7 +505,6 @@
                         body: formData
                     });
                     
-                    // 只有明确要求时才显示提示
                     if (showIndicator) {
                         indicator.style.display = 'block';
                         setTimeout(() => {
@@ -524,7 +514,6 @@
                     
                 } catch (error) {
                     console.error('Error saving answer:', error);
-                    // 保存失败，重新加入队列
                     saveQueue.unshift(item);
                     break;
                 }
@@ -532,27 +521,21 @@
             
             isSaving = false;
         }
-
-
-
-
+        
         // 手动确认保存
         async function manualSave() {
             const saveBtn = document.getElementById('manual-save-btn');
             const originalText = saveBtn.innerHTML;
             
-            // 禁用按钮，显示保存中
             saveBtn.disabled = true;
             saveBtn.innerHTML = '保存中...';
             saveBtn.style.backgroundColor = '#999';
             
             try {
-                // 先检查当前题是否有选择但未保存
                 const selected = document.querySelector('input[name="answer"]:checked');
                 if (selected) {
                     const selectedAnswer = parseInt(selected.value);
                     
-                    // 如果当前题的答案和已保存的不同，或者还没保存过
                     if (answers[currentQuestion] !== selectedAnswer) {
                         answers[currentQuestion] = selectedAnswer;
                         saveQueue.push({
@@ -563,14 +546,11 @@
                     }
                 }
                 
-                // 处理所有待保存的数据
                 await processSaveQueue(true);
                 
-                // 显示成功
                 saveBtn.innerHTML = '✓ 已保存';
                 saveBtn.style.backgroundColor = '#4CAF50';
                 
-                // 2秒后恢复
                 setTimeout(() => {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalText;
@@ -589,8 +569,6 @@
                 }, 3000);
             }
         }
-
-
         
         // 为FN标签分配颜色
         function assignFNColors(definitions) {
@@ -609,7 +587,6 @@
                 return;
             }
             
-            // 检查是否全部完成
             if (Object.keys(answers).length === questions.length) {
                 showAllCompleted();
                 return;
@@ -675,7 +652,6 @@
             document.getElementById('question-container').innerHTML = html;
             document.getElementById('progress').innerHTML = `Question ${currentQuestion + 1} of ${questions.length}`;
             
-            // 恢复之前的选择（如果有）
             if (currentQuestion in answers) {
                 const savedAnswer = answers[currentQuestion];
                 const radio = document.querySelector(`input[name="answer"][value="${savedAnswer}"]`);
@@ -708,12 +684,10 @@
             
             const selectedAnswer = parseInt(selected.value);
             
-            // 保存答案（异步，不等待）
             answers[currentQuestion] = selectedAnswer;
             saveAnswer(currentQuestion, selectedAnswer);
             updateProgressInfo();
             
-            // 立即跳转到下一题
             currentQuestion++;
             
             if (currentQuestion < questions.length) {
@@ -805,7 +779,7 @@
         // 定期检查保存队列
         setInterval(() => {
             if (saveQueue.length > 0 && !isSaving) {
-                processSaveQueue();
+                processSaveQueue(false);
             }
         }, 2000);
     </script>
