@@ -462,11 +462,14 @@
             <div class="user-info-left">
                 <span id="user-name"></span>
                 <button class="logout-btn" onclick="logout()">退出登录</button>
-            </div>
             <div class="user-info-right">
-                <span id="progress-info"></span>
-                <button class="logout-btn" onclick="manualSave()" id="manual-save-btn" style="background-color: #FF9800;">💾 确认保存</button>
-            </div>
+    <span id="progress-info"></span>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="number" id="jump-input" placeholder="跳转至第" min="1" style="width: 80px; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 14px;">
+        <button class="logout-btn" onclick="jumpToQuestion()" style="background-color: #9C27B0; padding: 8px 15px;">跳转</button>
+        <button class="logout-btn" onclick="manualSave()" id="manual-save-btn" style="background-color: #FF9800;">💾 确认保存</button>
+    </div>
+</div>
         </div>
         
         <div class="progress" id="progress"></div>
@@ -894,6 +897,35 @@
             options.classList.toggle('collapsed');
             icon.classList.toggle('collapsed');
         }
+        // 跳转到指定题目
+function jumpToQuestion() {
+    const input = document.getElementById('jump-input');
+    const targetQuestion = parseInt(input.value);
+    
+    if (!targetQuestion || targetQuestion < 1 || targetQuestion > questions.length) {
+        alert(`请输入有效的题目编号 (1-${questions.length})`);
+        return;
+    }
+    
+    // 保存当前题目的答案（如果有选择）
+    const selected = document.querySelector('input[name="answer"]:checked');
+    if (selected) {
+        const selectedAnswer = parseInt(selected.value);
+        if (answers[currentQuestion] !== selectedAnswer) {
+            answers[currentQuestion] = selectedAnswer;
+            saveAnswer(currentQuestion, selectedAnswer);
+            updateProgressInfo();
+        }
+    }
+    
+    // 跳转
+    currentQuestion = targetQuestion - 1;
+    displayQuestion();
+    window.scrollTo(0, 0);
+    document.getElementById('selected-panel').classList.remove('show');
+    document.getElementById('panel-content').classList.remove('expanded');
+    input.value = ''; // 清空输入框
+}
         
         // 页面关闭前确保保存完成
         window.addEventListener('beforeunload', function (e) {
@@ -913,4 +945,5 @@
     </script>
     
 </body>
+
 </html>
